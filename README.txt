@@ -5,104 +5,109 @@
 ---
 
 ## 🔧 Overview
-This project provisions a full Kubernetes environment on AWS using Terraform, deploying two applications:
+This repository contains infrastructure-as-code and Kubernetes manifests for running two applications on AWS EKS:
 - A public **Web App**
 - An internal **Auth API**
 
-Both services run inside the Kubernetes cluster and communicate via ClusterIP Services.  
-Docker images are stored in AWS ECR and deployed manually to EKS.
+Infrastructure is provisioned with Terraform in the `terraform/` directory.  
+Kubernetes workloads are defined in the `k8s/` directory.  
+Docker images are pushed manually to AWS ECR.
 
 ---
 
 ## 🏗 Architecture
-Docker Images (WebApp + AuthAPI)  
-↓  
+Docker Images (Web App + Auth API)  
+⬇  
 Amazon ECR  
-↓  
-Terraform  
-↓  
+⬇  
+Terraform (AWS + EKS)  
+⬇  
 Amazon EKS Cluster  
-↓  
+⬇  
 Kubernetes Deployments + Services  
-↓  
-Web App ↔ Auth API internal communication
+⬇  
+Web App ↔ Auth API (internal cluster communication)
 
 ---
 
 ## 📁 Repository Structure
 Terraform-k8s-project/  
- ├── infrastructure/  
- │   ├── eks/  
- │   │   ├── main.tf  
- │   │   ├── variables.tf  
- │   │   ├── outputs.tf  
- │   │   └── eks.tf  
- │   ├── ecr/  
- │   │   └── main.tf  
- │   ├── networking/  
- │   │   ├── vpc.tf  
- │   │   ├── subnets.tf  
- │   │   ├── igw.tf  
- │   │   └── route_tables.tf  
+ ├── terraform/  
+ │   ├── main.tf  
+ │   ├── variables.tf  
+ │   ├── outputs.tf  
+ │   └── (EKS / networking / IAM resources)  
  ├── k8s/  
  │   ├── web_app-deployment.yaml  
  │   ├── web_app-service.yaml  
  │   ├── auth_api-deployment.yaml  
  │   ├── auth_api-service.yaml  
  │   └── namespace.yaml  
- ├── docker/  
- │   ├── web_app/  
- │   │   └── Dockerfile  
- │   ├── auth_api/  
- │   │   └── Dockerfile  
  └── README.md
 
 ---
 
-## ☁️ AWS Infrastructure Components
+## ☁️ AWS Infrastructure (Terraform)
 
-### 🌐 VPC & Networking
-- Custom VPC  
-- Public & private subnets  
-- Internet Gateway  
-- Route tables  
-- Security groups for EKS nodes  
+### 🌐 Networking & Cluster
+- VPC, subnets, routing  
+- Security groups  
+- EKS cluster  
+- Node group(s)  
+- IAM roles  
 
-### 🐳 ECR (Elastic Container Registry)
-- Repository for **web_app**  
-- Repository for **auth_api**
-
-### 🎛 Amazon EKS
-- Managed Kubernetes control plane  
-- Node group for workloads  
-- IAM roles for EKS & worker nodes  
-- OIDC provider (optional, not used here)
+### 🐳 Amazon ECR
+- ECR repo for **web_app**  
+- ECR repo for **auth_api**
 
 ---
 
-## 🚢 Kubernetes Components
+## 🚢 Kubernetes Workloads
 
 ### 📦 Deployments
-- `web_app` deployment  
-- `auth_api` deployment  
-Both configured with:
-- Replicas  
-- Container images from ECR  
-- Environment variables (e.g., `IP_START`)  
-- Resource requests/limits (optional)
+- `web_app-deployment.yaml`  
+- `auth_api-deployment.yaml`  
+Each includes:
+- ECR image
+- Environment variables
+- Replicas
 
 ### 🔌 Services
-- `web_app-service` (ClusterIP / NodePort depending on config)  
-- `auth_api-service` (ClusterIP)  
+- `web_app-service.yaml` (ClusterIP / NodePort)  
+- `auth_api-service.yaml` (ClusterIP)
 
 ### 🗂 Namespace
-- Custom namespace for project isolation
+- `namespace.yaml` for isolation
 
 ---
 
-## ▶️ Deployment Process (Manual)
-1. Build Docker images  
-2. Push to ECR  
-3. Apply Terraform  
-4. Update K8s manifests with the latest image tags  
-5. Deploy to cluster:
+## ▶️ Manual Deployment
+
+### 1. Terraform AWS Infrastructure
+cd terraform  
+terraform init  
+terraform plan  
+terraform apply  
+
+### 2. Build & Push Docker Images
+docker build -t web_app .  
+docker build -t auth_api .  
+docker push <ECR>/web_app  
+docker push <ECR>/auth_api  
+
+### 3. Apply Kubernetes Manifests
+cd k8s  
+kubectl apply -f namespace.yaml  
+kubectl apply -f auth_api-deployment.yaml  
+kubectl apply -f auth_api-service.yaml  
+kubectl apply -f web_app-deployment.yaml  
+kubectl apply -f web_app-service.yaml  
+
+---
+
+## 🗺 Future Improvements
+- Add GitHub Actions CI/CD  
+- Add Ingress / ALB for external access  
+- Add dev/stage/prod namespaces  
+- Add ConfigMaps + Secrets  
+- Automatic versioning and rollouts  

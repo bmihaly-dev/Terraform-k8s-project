@@ -9,6 +9,6 @@ output "ecrauthapi_uri" {
 }
 
 output "ingress_hint" {
-  value       = "Futás után: kubectl get ingress -n ${var.namespace} "�� ALB DNS"
-  description = "Hol találod az ALB hostnevet"
+  value       = "Futás után: kubectl get ingress -n ${var.namespace} " ALB DNS"
+  description = "Hol találod az ALB hostnevet
 }
