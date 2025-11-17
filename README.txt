@@ -7,10 +7,10 @@
 <h2>🔧 Overview</h2>
 This project provisions AWS infrastructure using Terraform and deploys two applications into an EKS cluster:
 
-- 🌐 <strong>Web App</strong> – public-facing  
-- 🔐 <strong>Auth API</strong> – internal backend  
+- 🌐 <strong>Web App</strong> – public-facing
+- 🔐 <strong>Auth API</strong> – internal backend
 
-Docker images are built manually, pushed to AWS ECR, then deployed into EKS using Kubernetes manifests.
+Docker images are built locally, pushed manually to AWS ECR, and deployed into the EKS cluster using Kubernetes manifests.
 
 ---
 
@@ -38,7 +38,7 @@ Terraform-k8s-project/
  │   ├── main.tf
  │   ├── variables.tf
  │   ├── outputs.tf
- │   └── (EKS / VPC / IAM resources)
+ │   └── (EKS / VPC / IAM modules)
  ├── k8s/
  │   ├── namespace.yaml
  │   ├── web_app-deployment.yaml
@@ -117,7 +117,7 @@ kubectl apply -f web_app-service.yaml
 
 <h2>🗺 Future Improvements</h2>
 - Add GitHub Actions / Jenkins CI/CD  
-- Add AWS ALB Ingress  
-- Add ConfigMaps & Secrets  
+- Add ALB Ingress  
+- Add K8s Secrets & ConfigMaps  
 - Add autoscaling (HPA)  
-- Add multi-environment support (dev/stage/prod)  
+- Add multiple environments (dev/stage/prod)  
