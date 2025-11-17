@@ -14,22 +14,14 @@ variable "namespace" {
   default     = "app"
   description = "K8s namespace az alkalmazásoknak"
 }
-variable "webapptag" {
+variable "web_app_tag" {
   type        = string
   default     = "1.0.0"
   description = "web-app image tag"
 }
 
-variable "authapitag" {
+variable "auth_api_tag" {
   type        = string
   default     = "1.0.0"
   description = "auth-api image tag"
-}
-variable "nodegroup_names" {
-  type    = list(string)
-  default = ["eksfunnodes"] # TÖLTSD KI: pl. ["eksfunnodes"]
-}
-variable "cluster_name" {
-  type    = string
-  default = "bmdemo-eks" # vagy ahogy nálad hívják
 }

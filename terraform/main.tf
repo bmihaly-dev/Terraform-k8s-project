@@ -1,19 +1,19 @@
 module "vpc" {
   source = "./modules/vpc"
 
-  project_name = var.project_name
-  cluster_name = local.eks_cluster_name
-  region = var.region
+  projectname = var.projectname
+  clustername = local.ekscluster_name
+  region       = var.region
 }
 
 # module "db" {
 #   source = "./modules/db"
 
-#   vpc_id = module.vpc.vpc_id
-#   subnet_ids = module.vpc.private_db_subnet_ids
-#   vpc_cidr_block = module.vpc.vpc_cidr_block
+#   vpcid = module.vpc.vpcid
+#   subnetids = module.vpc.privatedbsubnetids
+#   vpccidrblock = module.vpc.vpccidrblock
 
-#   tag_name = var.project_name
+#   tagname = var.projectname
 
 # }
 
@@ -21,27 +21,34 @@ module "vpc" {
 #   source = "./modules/ecr"
 
 #   region = var.region
-#   project_name = var.project_name
+#   projectname = var.projectname
 #   profile = var.profile
 # }
 
-module "eks" {
+module "eks" 
+{
   source = "./modules/eks"
 
-  vpc_id = module.vpc.vpc_id
+  vpcid                          = module.vpc.vpcid
+  clusterendpointpublic_access  = true
+  clusterendpointprivate_access = false
+
+  clusterendpointpublicaccesscidrs = ["0.0.0.0/0"]
+
+
 
   subnet_ids = [
-    module.vpc.public_subnet_ids[0],
-    module.vpc.public_subnet_ids[1],
-    module.vpc.private_subnet_id
+    module.vpc.publicsubnetids[0],
+    module.vpc.publicsubnetids[1],
+    module.vpc.privatesubnetid
   ]
 
-  project_name = var.project_name
-  aws_region = var.region
-  cluster_name = local.eks_cluster_name
+  projectname      = var.projectname
+  aws_region        = var.region
+  clustername      = local.ekscluster_name
   configure_kubectl = true
 }
 
 locals {
-  eks_cluster_name = "${var.project_name}-eks-cluster"
+  eksclustername = "${var.project_name}-eks-cluster"
 }

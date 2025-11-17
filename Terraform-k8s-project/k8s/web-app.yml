@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web-app
-  namespace: webns
+  namespace: app
 spec:
   replicas: 2
   selector:
@@ -15,15 +15,9 @@ spec:
     spec:
       containers:
         - name: web-app
-          image: 154744860201.dkr.ecr.ap-south-1.amazonaws.com/web-app:1.0.0
-          imagePullPolicy: IfNotPresent
+          image: bmihalydev/web-app:latest
           ports:
             - containerPort: 8080
-          env:
-            - name: IP_START
-              value: "10.0"
-            - name: AUTH_API_URL
-              value: "http://auth-api.authns.svc.cluster.local/verify"
           readinessProbe:
             httpGet:
               path: /
@@ -41,7 +35,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: web-app
-  namespace: webns   # <-- ide kell
+  namespace: app
 spec:
   type: ClusterIP
   selector:

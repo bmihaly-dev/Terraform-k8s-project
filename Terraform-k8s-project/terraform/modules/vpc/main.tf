@@ -1,18 +1,18 @@
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
-  enablednssupport   = true
-  enablednshostnames = true
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = {
     Name = "${var.project_name}-vpc"
   }
 }
 
-resource "awssubnet" "public1" {
-  vpcid                  = awsvpc.main.id
+resource "aws_subnet" "public_1" {
+  vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
   availability_zone       = "${var.region}a"
-  mappubliciponlaunch = true
+  map_public_ip_on_launch = true
 
   tags = {
     Name                                        = "${var.project_name}-public-1"
@@ -21,11 +21,11 @@ resource "awssubnet" "public1" {
   }
 }
 
-resource "awssubnet" "public2" {
-  vpcid                  = awsvpc.main.id
+resource "aws_subnet" "public_2" {
+  vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.2.0/24"
   availability_zone       = "${var.region}b"
-  mappubliciponlaunch = true
+  map_public_ip_on_launch = true
 
   tags = {
     Name                                        = "${var.project_name}-public-2"
@@ -35,7 +35,7 @@ resource "awssubnet" "public2" {
 }
 
 resource "aws_subnet" "private" {
-  vpcid            = awsvpc.main.id
+  vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.3.0/24"
   availability_zone = "${var.region}b"
 
@@ -46,8 +46,8 @@ resource "aws_subnet" "private" {
   }
 }
 
-resource "awssubnet" "privatedb_a" {
-  vpcid            = awsvpc.main.id
+resource "aws_subnet" "private_db_a" {
+  vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.4.0/24"
   availability_zone = "${var.region}a"
 
@@ -56,8 +56,8 @@ resource "awssubnet" "privatedb_a" {
   }
 }
 
-resource "awssubnet" "privatedb_b" {
-  vpcid            = awsvpc.main.id
+resource "aws_subnet" "private_db_b" {
+  vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.5.0/24"
   availability_zone = "${var.region}b"
 
@@ -66,8 +66,8 @@ resource "awssubnet" "privatedb_b" {
   }
 }
 
-resource "awssubnet" "privatedb_c" {
-  vpcid            = awsvpc.main.id
+resource "aws_subnet" "private_db_c" {
+  vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.6.0/24"
   availability_zone = "${var.region}c"
 
@@ -76,8 +76,8 @@ resource "awssubnet" "privatedb_c" {
   }
 }
 
-resource "awsinternetgateway" "this" {
-  vpcid = awsvpc.main.id
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.main.id
 
   tags = {
     Name = "${var.project_name}-igw"
@@ -88,23 +88,23 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 }
 
-resource "awsnatgateway" "nat" {
-  allocationid = awseip.nat.id
-  subnetid     = awssubnet.public_1.id
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public_1.id
 
   tags = {
     Name = "${var.project_name}-private-nat"
   }
 
-  dependson = [awsinternet_gateway.this]
+  depends_on = [aws_internet_gateway.this]
 }
 
-resource "awsroutetable" "public" {
-  vpcid = awsvpc.main.id
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gatewayid = awsinternet_gateway.this.id
+    gateway_id = aws_internet_gateway.this.id
   }
 
   tags = {
@@ -112,12 +112,12 @@ resource "awsroutetable" "public" {
   }
 }
 
-resource "awsroutetable" "private" {
-  vpcid = awsvpc.main.id
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    natgatewayid = awsnatgateway.nat.id
+    nat_gateway_id = aws_nat_gateway.nat.id
   }
 
   tags = {
@@ -125,17 +125,17 @@ resource "awsroutetable" "private" {
   }
 }
 
-resource "awsroutetableassociation" "public1" {
-  subnetid      = awssubnet.public_1.id
-  routetableid = awsroutetable.public.id
+resource "aws_route_table_association" "public_1" {
+  subnet_id      = aws_subnet.public_1.id
+  route_table_id = aws_route_table.public.id
 }
 
-resource "awsroutetableassociation" "public2" {
-  subnetid      = awssubnet.public_2.id
-  routetableid = awsroutetable.public.id
+resource "aws_route_table_association" "public_2" {
+  subnet_id      = aws_subnet.public_2.id
+  route_table_id = aws_route_table.public.id
 }
 
-resource "awsroutetable_association" "private" {
-  subnetid      = awssubnet.private.id
-  routetableid = awsroutetable.private.id
+resource "aws_route_table_association" "private" {
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private.id
 }

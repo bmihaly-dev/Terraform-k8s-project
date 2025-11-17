@@ -1,4 +1,4 @@
-data "awsiampolicydocument" "awslbc" {
+data "aws_iam_policy_document" "aws_lbc" {
   statement {
     effect = "Allow"
 
@@ -14,29 +14,29 @@ data "awsiampolicydocument" "awslbc" {
   }
 }
 
-resource "awsiamrole" "aws_lbc" {
-  name               = "${awsekscluster.this.name}-aws-lbc"
-  assumerolepolicy = data.awsiampolicydocument.awslbc.json
+resource "aws_iam_role" "aws_lbc" {
+  name               = "${aws_eks_cluster.this.name}-aws-lbc"
+  assume_role_policy = data.aws_iam_policy_document.aws_lbc.json
 }
 
-resource "awsiampolicy" "aws_lbc" {
-  policy = file("./modules/eks/awsloadbalancercontrolleriam_policy.json")
+resource "aws_iam_policy" "aws_lbc" {
+  policy = file("./modules/eks/aws_load_balancer_controller_iam_policy.json")
   name   = "${var.project_name}-AWSLoadBalancerController"
 }
 
-resource "awsiamrolepolicyattachment" "aws_lbc" {
-  policyarn = awsiampolicy.awslbc.arn
-  role       = awsiamrole.aws_lbc.name
+resource "aws_iam_role_policy_attachment" "aws_lbc" {
+  policy_arn = aws_iam_policy.aws_lbc.arn
+  role       = aws_iam_role.aws_lbc.name
 }
 
-resource "awsekspodidentityassociation" "aws_lbc" {
-  clustername    = awseks_cluster.this.name
+resource "aws_eks_pod_identity_association" "aws_lbc" {
+  cluster_name    = aws_eks_cluster.this.name
   namespace       = "kube-system"
   service_account = "aws-load-balancer-controller"
-  rolearn        = awsiamrole.awslbc.arn
+  role_arn        = aws_iam_role.aws_lbc.arn
 }
 
-resource "helmrelease" "awslbc" {
+resource "helm_release" "aws_lbc" {
   name = "aws-load-balancer-controller"
 
   repository = "https://aws.github.io/eks-charts"
@@ -47,7 +47,7 @@ resource "helmrelease" "awslbc" {
   set = [
     {
       name  = "clusterName"
-      value = awsekscluster.this.name
+      value = aws_eks_cluster.this.name
       }, {
       name  = "serviceAccount.name"
       value = "aws-load-balancer-controller"
@@ -57,5 +57,5 @@ resource "helmrelease" "awslbc" {
     }
   ]
 
-  dependson = [awseksnodegroup.eksfunnodes, awseksaddon.podidentityagent]
+  depends_on = [aws_eks_node_group.eks_fun_nodes, aws_eks_addon.pod_identity_agent]
 }

@@ -4,11 +4,10 @@ variable "project_name" {
 }
 
 variable "region" {
-  description = "Selected region for AWS infrastructure!"
+  description = "Selected region!"
   type        = string
 }
 
-variable "profile" {
-  description = "Selected AWS CLI profile!"
-  type        = string
+variable "cluster_name" {
+  type = string
 }

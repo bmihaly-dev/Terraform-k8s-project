@@ -1,14 +1,14 @@
-output "ecr_web_app_uri" {
-  value       = local.web_app_uri
+output "ecrwebapp_uri" {
+  value       = local.webappuri
   description = "web-app ECR image URI (repo:tag)"
 }
 
-output "ecr_auth_api_uri" {
-  value       = local.auth_api_uri
+output "ecrauthapi_uri" {
+  value       = local.authapiuri
   description = "auth-api ECR image URI (repo:tag)"
 }
 
 output "ingress_hint" {
-  value       = "Futás után: kubectl get ingress -n ${var.namespace} → ALB DNS"
+  value       = "Futás után: kubectl get ingress -n ${var.namespace} "�� ALB DNS"
   description = "Hol találod az ALB hostnevet"
 }

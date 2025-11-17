@@ -1,4 +1,4 @@
-data "aws_iam_policy_document" "ebs_csi_driver" {
+data "awsiampolicydocument" "ebscsi_driver" {
   statement {
     effect = "Allow"
 
@@ -14,18 +14,18 @@ data "aws_iam_policy_document" "ebs_csi_driver" {
   }
 }
 
-resource "aws_iam_role" "ebs_csi_driver" {
-  name               = "${aws_eks_cluster.this.name}-ebs-csi-driver"
-  assume_role_policy = data.aws_iam_policy_document.ebs_csi_driver.json
+resource "awsiamrole" "ebscsidriver" {
+  name               = "${awsekscluster.this.name}-ebs-csi-driver"
+  assumerolepolicy = data.awsiampolicydocument.ebscsi_driver.json
 }
 
-resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
+resource "awsiamrolepolicyattachment" "ebscsidriver" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-  role       = aws_iam_role.ebs_csi_driver.name
+  role       = awsiamrole.ebscsidriver.name
 }
 
-resource "aws_iam_policy" "ebs_csi_driver_encryption" {
-  name = "${aws_eks_cluster.this.name}-ebs-csi-driver-encryption"
+resource "awsiampolicy" "ebscsidriver_encryption" {
+  name = "${awsekscluster.this.name}-ebs-csi-driver-encryption"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -43,22 +43,22 @@ resource "aws_iam_policy" "ebs_csi_driver_encryption" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ebs_csi_driver_encryption" {
-  policy_arn = aws_iam_policy.ebs_csi_driver_encryption.arn
-  role       = aws_iam_role.ebs_csi_driver.name
+resource "awsiamrolepolicyattachment" "ebscsidriver_encryption" {
+  policyarn = awsiampolicy.ebscsidriverencryption.arn
+  role       = awsiamrole.ebscsidriver.name
 }
 
-resource "aws_eks_pod_identity_association" "ebs_csi_driver" {
-  cluster_name    = aws_eks_cluster.this.name
+resource "awsekspodidentityassociation" "ebscsidriver" {
+  clustername    = awseks_cluster.this.name
   namespace       = "kube-system"
   service_account = "ebs-csi-controller-sa"
-  role_arn        = aws_iam_role.ebs_csi_driver.arn
+  rolearn        = awsiamrole.ebscsi_driver.arn
 }
 
-resource "aws_eks_addon" "ebs_csi" {
-  cluster_name      = aws_eks_cluster.this.name
-  addon_name        = "aws-ebs-csi-driver"
-  service_account_role_arn = aws_iam_role.ebs_csi_driver.arn
+resource "awseksaddon" "ebs_csi" {
+  clustername             = awseks_cluster.this.name
+  addon_name               = "aws-ebs-csi-driver"
+  serviceaccountrolearn = awsiamrole.ebscsi_driver.arn
 
-  depends_on = [ aws_eks_node_group.eks_fun_nodes, aws_eks_addon.pod_identity_agent ]
+  dependson = [awseksnodegroup.eksfunnodes, awseksaddon.podidentityagent]
 }

@@ -1,42 +1,45 @@
-resource "aws_eks_addon" "pod_identity_agent" {
-  cluster_name      = aws_eks_cluster.this.name
-  addon_name        = "eks-pod-identity-agent"
+resource "awseksaddon" "podidentityagent" {
+  clustername = awseks_cluster.this.name
+  addon_name   = "eks-pod-identity-agent"
 }
 
 
 // Master node
-resource "aws_eks_cluster" "this" {
+resource "awsekscluster" "this" {
   name     = var.cluster_name
-  role_arn = aws_iam_role.eks_cluster.arn
-  version = "1.33"
+  rolearn = awsiamrole.ekscluster.arn
+  version  = "1.33"
 
-  bootstrap_self_managed_addons = true
+  bootstrapselfmanaged_addons = true
 
   vpc_config {
-    subnet_ids         = var.subnet_ids
-    security_group_ids = [aws_security_group.eks_cluster.id]
+    subnetids              = var.subnetids
+    securitygroupids      = [awssecuritygroup.eks_cluster.id]
+    endpointpublicaccess  = var.clusterendpointpublic_access
+    endpointprivateaccess = var.clusterendpointprivate_access
+    publicaccesscidrs     = var.clusterendpointpublicaccesscidrs
   }
 
   access_config {
     authentication_mode                         = "API"
-    bootstrap_cluster_creator_admin_permissions = true
+    bootstrapclustercreatoradminpermissions = true
   }
 
-  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+  enabledclusterlog_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   depends_on = [
-    aws_iam_role_policy_attachment.eks_cluster_policy,
+    awsiamrolepolicyattachment.eksclusterpolicy,
   ]
 }
 
 // Worker node
-resource "aws_eks_node_group" "eks_fun_nodes" {
-  cluster_name    = aws_eks_cluster.this.name
-  node_group_name = "eks_fun_nodes"
-  node_role_arn   = aws_iam_role.eks_node.arn
-  subnet_ids = [var.subnet_ids[2]]
-  instance_types = [ "t3.xlarge" ]
-  capacity_type = "ON_DEMAND"
+resource "awseksnodegroup" "eksfun_nodes" {
+  clustername    = awseks_cluster.this.name
+  nodegroupname = "eksfunnodes"
+  noderolearn   = awsiamrole.eks_node.arn
+  subnetids      = [var.subnetids[2]]
+  instance_types  = ["t3.xlarge"]
+  capacitytype   = "ONDEMAND"
 
   scaling_config {
     desired_size = 1
@@ -50,36 +53,34 @@ resource "aws_eks_node_group" "eks_fun_nodes" {
 
   lifecycle {
     ignore_changes = [
-      scaling_config[0].desired_size,
-      scaling_config[0].max_size,
-      scaling_config[0].min_size
+      scalingconfig[0].desiredsize,
+      scalingconfig[0].maxsize,
+      scalingconfig[0].minsize
     ]
   }
 
 
   labels = {
-    "node-type" = "eks_fun_nodes"
+    "node-type" = "eksfunnodes"
   }
 
   tags = {
-    Name = "eks_fun_nodes"
+    Name = "eksfunnodes"
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.eks_worker_policy,
-    aws_iam_role_policy_attachment.ecr_read_policy,
-    aws_iam_role_policy_attachment.eks_cni_policy
+    awsiamrolepolicyattachment.eksworkerpolicy,
+    awsiamrolepolicyattachment.ecrreadpolicy,
+    awsiamrolepolicyattachment.ekscnipolicy
   ]
 }
 
 // Automate local kubectl configuration
-resource "terraform_data" "configure_kubectl" {
-  count = var.configure_kubectl ? 1 : 0
-  depends_on = [aws_eks_cluster.this]
+resource "terraformdata" "configurekubectl" {
+  count      = var.configure_kubectl ? 1 : 0
+  dependson = [awseks_cluster.this]
 
   provisioner "local-exec" {
-    command = <<EOT
-      aws eks update-kubeconfig --region ${var.aws_region} --name ${aws_eks_cluster.this.name}
-    EOT
+    command = "aws eks update-kubeconfig --region ap-south-1 --name ${trimspace(awsekscluster.this.name)}"
   }
 }

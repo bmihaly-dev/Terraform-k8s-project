@@ -1,9 +1,8 @@
-
 resource "kubernetes_namespace" "app" {
   metadata { name = var.namespace }
 }
 
-resource "kubernetesdeployment" "webapp" {
+resource "kubernetes_deployment" "web_app" {
   metadata {
     name      = "web-app"
     namespace = kubernetes_namespace.app.metadata[0].name
@@ -17,7 +16,7 @@ resource "kubernetesdeployment" "webapp" {
       spec {
         container {
           name  = "web-app"
-          image = local.webappuri
+          image = local.web_app_uri
 
           # Helyes indítás:
           command = ["node"]
@@ -35,7 +34,7 @@ resource "kubernetesdeployment" "webapp" {
               path = "/"
               port = 8080
             }
-            initialdelayseconds = 10
+            initial_delay_seconds = 10
             period_seconds        = 10
           }
           readiness_probe {
@@ -43,7 +42,7 @@ resource "kubernetesdeployment" "webapp" {
               path = "/"
               port = 8080
             }
-            initialdelayseconds = 5
+            initial_delay_seconds = 5
             period_seconds        = 5
           }
 
@@ -58,7 +57,7 @@ resource "kubernetesdeployment" "webapp" {
   }
 }
 
-resource "kubernetesdeployment" "authapi" {
+resource "kubernetes_deployment" "auth_api" {
   metadata {
     name      = "auth-api"
     namespace = kubernetes_namespace.app.metadata[0].name
@@ -72,7 +71,7 @@ resource "kubernetesdeployment" "authapi" {
       spec {
         container {
           name  = "auth-api"
-          image = local.authapiuri
+          image = local.auth_api_uri
 
           # Helyes indítás:
           command = ["node"]
@@ -90,7 +89,7 @@ resource "kubernetesdeployment" "authapi" {
               path = "/"
               port = 8080
             }
-            initialdelayseconds = 10
+            initial_delay_seconds = 10
             period_seconds        = 10
           }
           readiness_probe {
@@ -98,7 +97,7 @@ resource "kubernetesdeployment" "authapi" {
               path = "/"
               port = 8080
             }
-            initialdelayseconds = 5
+            initial_delay_seconds = 5
             period_seconds        = 5
           }
 
