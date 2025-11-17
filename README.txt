@@ -1,30 +1,31 @@
 # 🚀 Terraform K8s Project
-Modern AWS EKS infrastructure with Terraform and Kubernetes deployments for Web App and Auth API.
-
-CI/CD: ❌ Not Included  
-Deployments: Manual  
-Registry: AWS ECR  
-Cluster: Amazon EKS
-
----
+Modern AWS EKS infrastructure with Terraform · Web App + Auth API deployed to Kubernetes  
+Infrastructure COMPLETE · CI/CD NOT included
 
 ## 🔧 Overview
-This project provisions AWS infrastructure using Terraform and deploys two applications into an EKS Kubernetes cluster:
+This project contains a full AWS + Kubernetes environment built with Terraform.  
+It deploys two applications into an EKS cluster:
 
-- 🌐 **Web App** – public-facing  
-- 🔐 **Auth API** – internal backend
+- 🌐 Web App (public-facing)
+- 🔐 Auth API (internal backend)
 
-Containers are pushed to **AWS ECR**, Terraform provisions EKS + networking, Kubernetes manifests deploy the workloads.
+Docker images are stored in AWS ECR.  
+Terraform builds all AWS infrastructure.  
+Kubernetes manifests deploy both applications.
 
 ---
 
 ## 🏗 Architecture
-Docker Images → AWS ECR  
-⬇  
-Terraform → AWS VPC + IAM + EKS  
-⬇  
+Docker Images (Web App + Auth API)  
+        ↓  
+AWS ECR  
+        ↓  
+Terraform (VPC + IAM + EKS)  
+        ↓  
+Amazon EKS Cluster  
+        ↓  
 Kubernetes Deployments + Services  
-⬇  
+        ↓  
 Web App ↔ Auth API (internal communication)
 
 ---
@@ -35,7 +36,7 @@ Terraform-k8s-project/
  │   ├── main.tf  
  │   ├── variables.tf  
  │   ├── outputs.tf  
- │   └── (EKS / VPC / IAM modules)  
+ │   └── (EKS / VPC / IAM resources)  
  ├── k8s/  
  │   ├── namespace.yaml  
  │   ├── web_app-deployment.yaml  
@@ -46,62 +47,61 @@ Terraform-k8s-project/
 
 ---
 
-## ☁️ AWS Infrastructure (Terraform)
+## ☁️ AWS Components
 
 ### 🌐 Networking
-- Custom VPC  
-- Public & private subnets  
-- Route tables  
+- VPC  
+- Public + private subnets  
+- Routing  
 - Security groups  
 
 ### 🎛 EKS Cluster
 - Managed Kubernetes control plane  
-- Worker node groups  
-- IAM roles for nodes and cluster  
+- Node groups  
+- IAM roles for worker nodes  
 
 ### 🐳 ECR Repositories
-- `web_app` image repo  
-- `auth_api` image repo  
+- web_app container image repo  
+- auth_api container image repo  
 
 ---
 
-## 🚢 Kubernetes Workloads
+## 🚢 Kubernetes Components
 
 ### 📦 Deployments
-- `web_app-deployment.yaml`  
-- `auth_api-deployment.yaml`  
-
-Each deployment uses:
-- ECR container image  
-- Replicas  
-- Environment variables  
-- Resource configs (optional)
+- web_app-deployment.yaml  
+- auth_api-deployment.yaml  
+Each includes:
+- ECR image  
+- replicas  
+- env vars  
+- restart policy  
 
 ### 🔌 Services
-- `web_app-service.yaml` → ClusterIP / NodePort  
-- `auth_api-service.yaml` → ClusterIP  
+- web_app-service.yaml (ClusterIP / NodePort)  
+- auth_api-service.yaml (ClusterIP)
 
 ### 🗂 Namespace
-- `namespace.yaml` → workload isolation
+- namespace.yaml → isolates workloads
 
 ---
 
-## ▶️ Manual Deployment Steps
+## ▶️ Manual Deployment
 
-### 1️⃣ Deploy AWS Infrastructure
+### 1. Terraform AWS Infrastructure
 cd terraform  
 terraform init  
 terraform plan  
 terraform apply  
 
-### 2️⃣ Build & Push Images to ECR
+### 2. Build & Push Images to ECR
 docker build -t web_app .  
 docker tag web_app <ECR_URI>:latest  
 docker push <ECR_URI>:latest  
 
-(same steps for **auth_api**)
+(same for auth_api)
 
-### 3️⃣ Apply Kubernetes Manifests
+### 3. Deploy Kubernetes Manifests
 cd k8s  
 kubectl apply -f namespace.yaml  
 kubectl apply -f auth_api-deployment.yaml  
@@ -111,9 +111,9 @@ kubectl apply -f web_app-service.yaml
 
 ---
 
-## 🗺 Future Enhancements
-- Add GitHub Actions / Jenkins CI/CD  
+## 🗺 Roadmap
+- Add CI/CD pipeline (GitHub Actions / Jenkins)  
 - Add Ingress + AWS ALB  
 - Add Secrets + ConfigMaps  
-- Autoscaling (HPA)  
-- Multi-environment support (dev/stage/prod)  
+- Autoscaling  
+- Multi-env support  
